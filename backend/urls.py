@@ -17,6 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.http import JsonResponse
 from django.urls import path
+from rest_framework_simplejwt.views import TokenRefreshView
+
+from .auth_views import SignInView, SignOutView, SignUpView
 
 
 def words(request):
@@ -26,4 +29,8 @@ def words(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/words/', words),
+    path('api/auth/signin/', SignInView.as_view(), name='signin'),
+    path('api/auth/signup/', SignUpView.as_view(), name='signup'),
+    path('api/auth/signout/', SignOutView.as_view(), name='signout'),
+    path('api/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
