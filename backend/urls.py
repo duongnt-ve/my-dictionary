@@ -20,6 +20,7 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from .auth_views import SignInView, SignOutView, SignUpView
+from words.views import SearchHistoryView, SearchWordView
 
 
 def words(request):
@@ -33,4 +34,6 @@ urlpatterns = [
     path('api/auth/signup/', SignUpView.as_view(), name='signup'),
     path('api/auth/signout/', SignOutView.as_view(), name='signout'),
     path('api/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/word/search/', SearchWordView.as_view(), name='word_search'),
+    path('api/word/search-history/', SearchHistoryView.as_view(), name='search_history'),
 ]

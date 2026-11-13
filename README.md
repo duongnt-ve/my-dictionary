@@ -63,3 +63,18 @@ remains valid until it expires. The frontend stores the refresh token in
 running on the site can access it, so XSS is a security risk. This is a
 development setup: use HTTPS and production-safe Django settings, and consider
 HttpOnly cookies and login rate limiting before deployment.
+
+## Word Search API
+
+- `POST /api/word/search/`: `{"word": "...", "target_lang": "es"}` (anonymous
+  allowed); returns `{"word": "...", "translation": "...", "target_lang": "..."}`.
+  Authenticated users' searches are stored in the database.
+- `GET /api/word/search-history/`: (authenticated only); returns
+  `{"searches": [{"id": ..., "word": "...", "result": {...}, "created_at": "..."}, ...]}`.
+
+Translations use the Google Cloud Translation API. Set `GOOGLE_TRANSLATE_API_KEY` in
+`.env` to enable search; obtain a key from https://cloud.google.com/translate/docs/setup.
+Common language codes: `es` (Spanish), `fr` (French), `de` (German), `ja` (Japanese),
+`zh-CN` (Chinese). See [supported languages](https://cloud.google.com/translate/docs/languages)
+for the full list.
+

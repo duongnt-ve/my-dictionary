@@ -49,6 +49,113 @@ function Words() {
   )
 }
 
+function SearchWord({ accessToken }) {
+  const [word, setWord] = useState('')
+  const [targetLang, setTargetLang] = useState('es')
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [message, setMessage] = useState('')
+
+  async function search(event) {
+    event.preventDefault()
+    setError('')
+    setMessage('')
+    setBusy(true)
+    try {
+      const data = await post('/api/word/search/', { word, target_lang: targetLang })
+      setMessage(`Translation: "${data.word}" → "${data.translation}"`)
+      setWord('')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <section>
+      <h2>Search word</h2>
+      <form onSubmit={search}>
+        <label>
+          Word
+          <input
+            type="text"
+            required
+            maxLength={255}
+            value={word}
+            onChange={(event) => setWord(event.target.value)}
+            placeholder="Enter a word to translate"
+          />
+        </label>
+        <label>
+          Language
+          <select value={targetLang} onChange={(event) => setTargetLang(event.target.value)}>
+            <option value="es">Spanish (es)</option>
+            <option value="fr">French (fr)</option>
+            <option value="de">German (de)</option>
+            <option value="ja">Japanese (ja)</option>
+            <option value="zh-CN">Chinese (zh-CN)</option>
+          </select>
+        </label>
+        <button disabled={busy}>{busy ? 'Searching...' : 'Translate'}</button>
+      </form>
+      {message && <p role="status">{message}</p>}
+      {error && <p role="alert">{error}</p>}
+      {accessToken && <p><button type="button" className="link" onClick={() => setMessage('')}>Clear</button></p>}
+    </section>
+  )
+}
+
+function SearchHistory({ accessToken }) {
+  const [searches, setSearches] = useState(null)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!accessToken) {
+      return
+    }
+    let active = true
+    const headers = { Authorization: `Bearer ${accessToken}` }
+    fetch('/api/word/search-history/', { headers })
+      .then((response) => {
+        if (!response.ok) throw new Error(`Request failed: ${response.status}`)
+        return response.json()
+      })
+      .then((data) => {
+        if (active) setSearches(data.searches)
+      })
+      .catch((err) => {
+        if (active) setError(err.message)
+      })
+    return () => { active = false }
+  }, [accessToken])
+
+  if (!accessToken) return null
+
+  return (
+    <section>
+      <h2>Search history</h2>
+      {error && <p role="alert">Could not load history: {error}</p>}
+      {!error && searches === null && <p>Loading...</p>}
+      {searches && (
+        searches.length === 0 ? (
+          <p>No searches yet.</p>
+        ) : (
+          <ul>
+            {searches.map((search) => (
+              <li key={search.id}>
+                <strong>{search.word}</strong> → {search.result.translation}
+                <br />
+                <small>{new Date(search.created_at).toLocaleString()}</small>
+              </li>
+            ))}
+          </ul>
+        )
+      )}
+    </section>
+  )
+}
+
 function App() {
   const [screen, setScreen] = useState(() => localStorage.getItem(TOKEN_KEY) ? 'restoring' : 'signin')
   const [sessionToken, setSessionToken] = useState(null)
@@ -195,6 +302,12 @@ function App() {
         {error && <p role="alert">{error}</p>}
       </section>
       <Words />
+      {screen === 'signedin' && (
+        <>
+          <SearchWord accessToken={sessionToken} />
+          <SearchHistory accessToken={sessionToken} />
+        </>
+      )}
     </main>
   )
 }

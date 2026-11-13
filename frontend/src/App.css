@@ -18,9 +18,13 @@ form {
   gap: 1rem;
 }
 
-input, button {
+input, button, select {
   font: inherit;
   padding: 0.5rem;
+}
+
+select {
+  cursor: pointer;
 }
 
 button {
